@@ -62,7 +62,7 @@
         Omogući XSS ranjivost
     </label>
     
-    <h4>Unesi sljedeći tekst u okvir: &lt;script&gt;alert("Vaša sjednica je ugrožena!");&lt;/script&gt;</h4>
+    <h4>Unesi sljedeći tekst u okvir: &lt;script&gt;alert("Vaša sjednica je ugrožena!" + document.cookie);&lt;/script&gt;</h4>
     
     <form id="text-form" onsubmit="submitText(event)">
         <label for="text">Upiši tekst:</label>
