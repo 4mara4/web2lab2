@@ -7,7 +7,7 @@ const https = require('https');
 const { Pool } = require('pg');
 require('dotenv').config();
 const externalURL = process.env.RENDER_EXTERNAL_URL; 
-const port = externalUrl && process.env.PORT ? parseInt(process.env.PORT) : 4080;
+const port = externalURL && process.env.PORT ? parseInt(process.env.PORT) : 4080;
 
 app.use(cookieParser());
 app.use(bodyParser.json());
@@ -15,7 +15,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public')); 
 
 const config = {
-    baseURL: externalUrl || `https://localhost:${port}`, 
+    baseURL: externalURL || `https://localhost:${port}`, 
 };
 
 const pool = new Pool({
