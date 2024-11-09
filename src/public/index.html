@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS Test</title>
+    <script>
+        function setVulnerability() {
+            const vulnerable = document.getElementById('vulnerability-toggle').checked;
+            fetch('/set-vulnerability', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ vulnerable })
+            })
+        }
+
+        function setSdeVulnerability() {
+            const vulnerable = document.getElementById('sde-vulnerability-toggle').checked;
+            fetch('/set-sde-vulnerability', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ vulnerable })
+            })
+        }
+
+        async function submitText(event) {
+            event.preventDefault(); 
+            const text = document.getElementById('text').value;
+
+            await fetch('/submit-text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text })
+            });
+            loadTexts(); 
+        }
+        async function submitData(event) {
+            event.preventDefault();
+            const data = document.getElementById('data').value;
+            await fetch('/submit-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }, 
+                body: JSON.stringify({data})
+            });
+            loadData();
+        }
+    </script>
+</head>
+<body>
+    <h1>XSS Ranjivost</h1>
+
+    <label>
+        <input type="checkbox" id="vulnerability-toggle" onclick="setVulnerability()">
+        Omogući XSS ranjivost
+    </label>
+    
+    <h4>Unesi sljedeći tekst u okvir: &lt;script&gt;alert("Vaša sjednica je ugrožena!");&lt;/script&gt;</h4>
+    
+    <form id="text-form" onsubmit="submitText(event)">
+        <label for="text">Upiši tekst:</label>
+        <textarea name="text" id="text"></textarea>
+        <button type="submit">Pošalji</button>
+    </form>
+
+    <div id="texts">
+    
+    </div>
+
+    <h1>Nesigurna pohrana osjetljivih podataka</h1>
+    <label>
+        <input type = "checkbox" id="sde-vulnerability-toggle" onclick="setSdeVulnerability()">
+        Omogući nesigurnu pohranu osjetljivih podataka
+    </label> 
+    <form id="data-form" onsubmit="submitData(event)">
+        <label for="data">Upiši broj kartice:</label>
+        <textarea name="data" id="data"></textarea>
+        <button type="submit">Pošalji</button>
+    </form>
+
+    <div id="data-entries">
+        
+    </div>
+
+    <script>
+        async function loadTexts() {
+            const response = await fetch('/texts');
+            const html = await response.text();
+            const textsDiv = document.getElementById('texts');
+
+            if (!document.getElementById('vulnerability-toggle').checked) {
+                textsDiv.innerText = html; 
+            } else {
+                textsDiv.innerHTML = html;
+
+                const scriptTags = textsDiv.getElementsByTagName('script');
+                for(let i = 0; i < scriptTags.length; i++) {
+                    const script = document.createElement('script');
+                    script.text = scriptTags[i].innerHTML;
+                    document.body.appendChild(script);
+                }
+            }
+        }
+        loadTexts();
+        async function loadData() {
+            const response = await fetch('/fetch-data');
+            const dataEntries = await response.json();
+            const dataDiv = document.getElementById('data-entries');
+            dataDiv.innerHTML = '';
+
+            dataEntries.forEach(entry => {
+                const dataText = document.createElement('p');
+                dataText.textContent = `ID: ${entry.id}, Data: ${entry.data}, Created At: ${new Date(entry.createdAt).toLocaleString()}`;
+                dataDiv.appendChild(dataText);
+            });
+        }
+    </script>
+</body>
+</html>
