@@ -6,6 +6,8 @@ const fs = require('fs');
 const https = require('https');
 const { Pool } = require('pg');
 require('dotenv').config();
+const crypto = require('crypto');
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 const externalURL = process.env.RENDER_EXTERNAL_URL; 
 const port = externalURL && process.env.PORT ? parseInt(process.env.PORT) : 4080;
 
@@ -52,11 +54,15 @@ let isVulnerable = false;
 let isSdeVulnerable = false;
 
 /*
-    EncodeData je funkcija za enkodiranje povjerljivih podataka.
+    EncodeData je funkcija za enkodiranje povjerljivih podataka. Koristi se AES algoritam za kriptiranje.
     SanitizeText je funkcija za provođenje sanitizacije teksta i zamjene znakova < i > kako se ne bi izvršio kod koji se možda nalazi unutar tagova.
  */
 function encodeData(data) {
-    return Buffer.from(data).toString('base64');
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+    let encrypted = cipher.update(data, 'utf-8', 'hex');
+    encrypted += cipher.final('hex');
+    return iv.toString('hex') + ':' + encrypted;
 }
 
 function sanitizeText(text) {
